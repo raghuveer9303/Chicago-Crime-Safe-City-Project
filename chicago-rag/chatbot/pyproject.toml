@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-chatbot"
+version = "0.1.0"
+description = "Chicago crime RAG API: LangGraph + Groq + Neo4j + LangSearch"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic-settings>=2.6.0",
+    "langgraph>=0.2.0",
+    "langgraph-checkpoint-postgres>=2.0.0",
+    "langchain>=1.0.0",
+    "langchain-core>=1.0.0",
+    "langchain-groq>=1.0.0",
+    "langchain-mistralai>=0.2.0",
+    "mistralai>=1.0.0,<2.0.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "mcp>=1.0.0",
+    "httpx>=0.27.0",
+    # Langfuse 2.x CallbackHandler expects legacy langchain.callbacks.* (breaks with LangChain 1.x). Use SDK 3+ for LC 1.x (OTLP to /api/public/otel/v1/traces; self-hosted Langfuse needs a version that exposes that route).
+    "langfuse>=3.14.0,<4.0.0",
+    "psycopg[binary]>=3.2.0",
+    "psycopg-pool>=3.2.0",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.8.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rag_chatbot*"]

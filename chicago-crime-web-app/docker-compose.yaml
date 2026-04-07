@@ -1,0 +1,113 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Chicago Crime App — Root Docker Compose
+# Path: chicago-crime-app/docker-compose.yaml
+#
+# Services:
+#   frontend         → nginx:3000  (reverse-proxies /api/ and /ws/)
+#   backend-service  → fastapi:8090 (ML predictions + GeoJSON)
+#   rag-api          → fastapi:8080 (LangGraph RAG chatbot, WebSocket)
+#
+# All three join the external data-infra-network so they can reach:
+#   postgres_db, neo4j, neo4j-mcp, langfuse, vault, minio, mlflow
+#
+# Prerequisites:
+#   docker network create data-infra-network
+#   Start infrastructure stacks first:
+#     Docker/vault-docker.yaml     (vault + vault-agent — renders *.env files)
+#     Docker/neo4j-docker.yaml     (neo4j)
+#     Docker/mcp-docker.yaml       (neo4j-mcp)
+#     Docker/langfuse-docker.yaml  (langfuse)
+#     Docker/airflow-docker.yaml   (postgres_db lives here)
+#
+# Usage:
+#   cp .env.example .env && nano .env   # set secrets
+#   docker compose up -d --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.8"
+
+services:
+
+  # ── Frontend (Nginx) ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ccas-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_HOST_PORT:-9530}:80"
+    depends_on:
+      backend-service:
+        condition: service_healthy
+      rag-api:
+        condition: service_healthy
+    networks:
+      - data-infra-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ── Backend Service (FastAPI — ML predictions + GeoJSON) ────────────────────
+  backend-service:
+    build:
+      context: ./backend/backend-service
+      dockerfile: Dockerfile
+    container_name: ccas-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_HOST_PORT:-9531}:8090"
+    env_file:
+      # Rendered by Vault Agent. Run Docker/vault-docker.yaml first.
+      # For local dev without Vault copy .env.example → backend-service/.env
+      - ${BACKEND_ENV_FILE:-../Docker/vault/rendered/backend-service.env}
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "8090"
+      # CORS: nginx frontend is on the same host; allow its origin.
+      CORS_ORIGINS: "${CORS_ORIGINS:-*}"
+    networks:
+      - data-infra-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8090/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # ── RAG API (FastAPI — LangGraph chatbot, WebSocket streaming) ──────────────
+  rag-api:
+    build:
+      context: ./backend/rag-chatbot
+      dockerfile: Dockerfile
+    container_name: ccas-rag-api
+    restart: unless-stopped
+    ports:
+      - "${RAG_HOST_PORT:-9532}:8080"
+    env_file:
+      # Rendered by Vault Agent.
+      - ${RAG_ENV_FILE:-../Docker/vault/rendered/rag.env}
+    environment:
+      NEO4J_MCP_URL: "${NEO4J_MCP_URL:-http://neo4j-mcp:8000/mcp/}"
+      MISTRAL_MODEL_SMALL: "${MISTRAL_MODEL_SMALL:-mistral-small-latest}"
+      MISTRAL_MODEL_MEDIUM: "${MISTRAL_MODEL_MEDIUM:-mistral-medium-latest}"
+      MISTRAL_MODEL_LARGE: "${MISTRAL_MODEL_LARGE:-mistral-large-latest}"
+      LANGFUSE_HOST: "${LANGFUSE_HOST:-http://langfuse:3000}"
+      LANGFUSE_LANGCHAIN_CALLBACKS: "${LANGFUSE_LANGCHAIN_CALLBACKS:-true}"
+      # Optional: LangGraph Postgres checkpointer
+      CHECKPOINT_POSTGRES_URI: "${CHECKPOINT_POSTGRES_URI:-}"
+    networks:
+      - data-infra-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 90s
+
+networks:
+  data-infra-network:
+    external: true

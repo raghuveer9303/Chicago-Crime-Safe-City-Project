@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicago Civic Risk Architecture</title>
+    <!-- Modern Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: rgba(30, 41, 59, 0.7);
+            --surface-hover: rgba(30, 41, 59, 0.9);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(12px);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--surface-color);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--surface-hover);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: transparent;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Explainers and Diagrams */
+        .card {
+            background: var(--surface-color);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        
+        /* Two columns for text and diagram on larger screens */
+        @media (min-width: 1024px) {
+            .content-grid.has-sidebar {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        .explanation h2 {
+            font-size: 2rem;
+            color: #f1f5f9;
+            margin-top: 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .explanation h3 {
+            font-size: 1.3rem;
+            color: #e2e8f0;
+            margin-top: 25px;
+        }
+
+        .explanation p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .explanation ul {
+            color: var(--text-secondary);
+            padding-left: 20px;
+        }
+        
+        .explanation li {
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        /* Diagram Container */
+        .diagram-container {
+            background: #ffffff; /* Mermaid graphs often need a light bg or specific theme config */
+            border-radius: 16px;
+            padding: 20px;
+            overflow-x: auto;
+            /* Simple invert trick if we want dark diagrams, but Mermaid dark theme is better */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .diagram-container.dark-diagram {
+            background: #1e293b;
+        }
+
+        /* Tags/Badges */
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .staff-note {
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 4px solid var(--accent-secondary);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>System Architecture</h1>
+            <p class="subtitle">A detailed Staff-Level Data Scientist perspective on the Data, ML, and GenAI infrastructure powering the Chicago Crime platform.</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('chi-bq')">Chicago: BigQuery Data Platform</button>
+            <button class="tab-btn" onclick="openTab('chi-ml')">Chicago: ML Pipeline</button>
+            <button class="tab-btn" onclick="openTab('chi-rag')">Chicago: RAG Architecture</button>
+        </div>
+
+        <!-- CHICAGO BIGQUERY TAB -->
+        <div id="chi-bq" class="tab-content active">
+            <div class="card">
+                <div class="content-grid has-sidebar">
+                    <div class="explanation">
+                        <h2>BigQuery Data Platform</h2>
+                        <p>The foundation of the Chicago Crime Application relies on a robust ingestion and transformation layer orchestrated by Apache Airflow. We treat BigQuery as our warehouse and semantic layer.</p>
+                        
+                        <div class="staff-note">
+                            <strong>Staff Insight:</strong> By decoupling ingestion from transformation, we follow the ELT paradigm. Raw data lands in GCS seamlessly, loads into BQ via external tables, and dbt handles the complex dimensional modeling and DAG-based materializations sequentially.
+                        </div>
+
+                        <h3>Core Components</h3>
+                        <ul>
+                            <li><span class="highlight">Airflow Sensors/Operators:</span> Daily operators ingest the official City portal endpoints.</li>
+                            <li><span class="highlight">Cloud Storage:</span> Acts as the indestructible bronze/raw staging layer.</li>
+                            <li><span class="highlight">BigQuery & dbt:</span> Handles SCD Type 2 logic, dimensional modeling, and creates materialized views for downstream ML consumptions.</li>
+                        </ul>
+
+                        <div class="tech-tags">
+                            <span class="tag">Apache Airflow</span>
+                            <span class="tag">Google Cloud Storage</span>
+                            <span class="tag">BigQuery</span>
+                            <span class="tag">dbt Core</span>
+                        </div>
+                    </div>
+                    
+                    <div class="diagram-container dark-diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                classDef source fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+                                classDef raw fill:#334155,stroke:#94a3b8,color:#fff
+                                classDef warehouse fill:#0f172a,stroke:#8b5cf6,stroke-width:2px,color:#fff
+                                classDef dbt fill:#475569,stroke:#fb923c,stroke-width:2px,color:#fff
+                                
+                                S1[(City of Chicago API)]:::source
+                                S2[(Weather API)]:::source
+                                
+                                subgraph Airflow Orchestration [Airflow Orchestration]
+                                    IngestCrime[Extract Crime Data]:::raw
+                                    IngestWeather[Extract Weather]:::raw
+                                    
+                                    S1 --> IngestCrime
+                                    S2 --> IngestWeather
+                                    
+                                    GCS[GCS Bronze Bucket]:::warehouse
+                                    
+                                    IngestCrime -.->|Parquet/JSON| GCS
+                                    IngestWeather -.->|JSON| GCS
+                                    
+                                    BQLoad[BQ Load Operators]:::raw
+                                    GCS --> BQLoad
+                                end
+                                
+                                subgraph BigQuery Analytics Environment [BigQuery ELT]
+                                    RawTables[(BQ Raw Tables)]:::warehouse
+                                    BQLoad --> RawTables
+                                    
+                                    subgraph dbt Transformations [dbt Core]
+                                        Staging[Staging Views]:::dbt
+                                        DimFact[Dimensional & Fact Tables]:::dbt
+                                        Aggregate[Aggregated Analytical Views]:::dbt
+                                        
+                                        RawTables --> Staging
+                                        Staging --> DimFact
+                                        DimFact --> Aggregate
+                                    end
+                                end
+                                
+                                ML[Machine Learning Pipeline]:::source
+                                Aggregate --> ML
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHICAGO ML TAB -->
+        <div id="chi-ml" class="tab-content">
+            <div class="card">
+                <div class="content-grid has-sidebar">
+                    <div class="explanation">
+                        <h2>Batch ML Pipeline</h2>
+                        <p>We predict future safety scores dynamically per community area. We pull aggregated historical features from standard BQ views, train a LightGBM model, and push high-confidence forecasts back into a transactional store (Postgres) to serve our FastAPI backend.</p>
+
+                        <div class="staff-note">
+                            <strong>Staff Insight:</strong> Feature engineering is explicitly pushed down to the data warehouse layer via dbt. We let BigQuery's distributed compute handle the heavy aggregations, keeping the Python ML code strictly focused on algorithm training, hyperparameter tuning, and MLflow artifact tracking.
+                        </div>
+
+                        <h3>Core Components</h3>
+                        <ul>
+                            <li><span class="highlight">Gold ML Views:</span> Aggregated features (rolling averages, seasonality) derived from BigQuery.</li>
+                            <li><span class="highlight">LightGBM:</span> Chosen for its superior handling of tabular data and speed, outperforming DNNs for this spatial-temporal regression task.</li>
+                            <li><span class="highlight">MLflow:</span> Artifact store keeping track of parameters, metrics, and persisting our frozen models.</li>
+                            <li><span class="highlight">Postgres Sync:</span> Predictions are synchronized into <code>studio_area_snapshot</code> for ultra-low latency reads by the UI.</li>
+                        </ul>
+
+                        <div class="tech-tags">
+                            <span class="tag">LightGBM</span>
+                            <span class="tag">MLflow</span>
+                            <span class="tag">PostgreSQL</span>
+                            <span class="tag">FastAPI</span>
+                        </div>
+                    </div>
+                    
+                    <div class="diagram-container dark-diagram">
+                        <div class="mermaid">
+                            flowchart LR
+                                classDef source fill:#1e293b,stroke:#3b82f6,color:#fff
+                                classDef ml fill:#4c1d95,stroke:#a78bfa,stroke-width:2px,color:#fff
+                                classDef serving fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#fff
+                                
+                                BQ[(BQ Gold ML Views)]:::source
+                                
+                                subgraph Airflow ML DAG [Airflow ML Training DAG]
+                                    Extract[Extract Gold Features]:::source
+                                    
+                                    subgraph Training Process
+                                        Prep[Feature Scaling / Imputation]:::ml
+                                        Train[LSTM Model Training]:::ml
+                                        Eval[Evaluate Thresholds]:::ml
+                                    end
+                                    
+                                    Extract --> Prep --> Train --> Eval
+                                    
+                                    Tracker[(MLflow Tracking Server)]:::ml
+                                    Train -.->|Log params, metrics, model artifacts| Tracker
+                                    
+                                    Scoring[Batch Scoring on Inference Horizon]:::ml
+                                    Eval --> Scoring
+                                end
+                                
+                                BQ --> Extract
+                                
+                                subgraph Serving Layer [Low Latency Serving]
+                                    PG[(Postgres: studio_area_snapshot)]:::serving
+                                    API[FastAPI Backend Endpoint]:::serving
+                                    
+                                    Scoring -->|Idempotent Upsert| PG
+                                    PG --> API
+                                end
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHICAGO RAG TAB -->
+        <div id="chi-rag" class="tab-content">
+            <div class="card">
+                <div class="content-grid has-sidebar">
+                    <div class="explanation">
+                        <h2>Agentic RAG using LangGraph</h2>
+                        <p>The conversational capability is powered by an advanced Agentic RAG architecture powered by LangGraph, routing queries dynamically. It integrates standard Web Search tools and a Neo4j Model Context Protocol (MCP) server for deep, unconstrained graph querying.</p>
+
+                        <div class="staff-note">
+                            <strong>Staff Insight:</strong> This isn't basic semantic search. By utilizing Mistral with LangGraph and MCP, we empower the LLM to autonomously write Cypher queries, validate syntax guardrails, and execute them safely against Neo4j. The routing agent (smaller Mistral model) saves cost/latency on simple tasks, while complex analytical asks invoke the larger Mistral model via LangGraph events.
+                        </div>
+
+                        <h3>Core Components</h3>
+                        <ul>
+                            <li><span class="highlight">LangGraph Streaming:</span> Real-time websocket streaming yields thinking, tool calls, and tokens sequentially.</li>
+                            <li><span class="highlight">Neo4j MCP:</span> We expose the Graph Database via Anthropic's Model Context Protocol, ensuring structured, standardized tool-use interfaces for the LLM.</li>
+                            <li><span class="highlight">Mistral Router:</span> A fast 20B LLM processes unstructured user asks and determines complexity.</li>
+                            <li><span class="highlight">Langsearch:</span> Real-time fallback to current web context to handle data missing in the graph repo.</li>
+                        </ul>
+
+                        <div class="tech-tags">
+                            <span class="tag">LangGraph v2</span>
+                            <span class="tag">Mistral AI</span>
+                            <span class="tag">Neo4j</span>
+                            <span class="tag">MCP (Model Context Protocol)</span>
+                            <span class="tag">WebSockets</span>
+                        </div>
+                    </div>
+
+                    <div class="diagram-container dark-diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                classDef user fill:#0f172a,stroke:#cbd5e1,color:#fff
+                                classDef llm fill:#1e3a8a,stroke:#60a5fa,stroke-width:2px,color:#fff
+                                classDef graph fill:#312e81,stroke:#818cf8,color:#fff
+                                classDef tools fill:#064e3b,stroke:#4ade80,color:#fff
+                                
+                                User((Frontend UI)):::user
+                                WS[FastAPI WebSocket Endpoint]:::user
+                                
+                                User <-->|JSON Events| WS
+                                
+                                subgraph LangGraph Agent Workflow
+                                    Router[Router LLM Phase<br>Structured Output 20B]:::llm
+                                    MainAgent[ReAct Agent Loop<br>Mistral Large/Medium]:::llm
+                                    
+                                    WS -->|User query| Router
+                                    Router -->|Determine Tier| MainAgent
+                                    
+                                    MainAgent -.->|Tokens, Tools, Events| WS
+                                    
+                                    subgraph Tool Arsenal
+                                        MCP[LangChain MCP Adapter<br>Cypher Guardrail Interceptor]:::tools
+                                        LS[Langsearch Web Search]:::tools
+                                        
+                                        MainAgent <-->|Write/Execute Cypher| MCP
+                                        MainAgent <-->|Lookup web config| LS
+                                    end
+                                end
+                                
+                                Neo4j[(Neo4j Graph Database)]:::graph
+                                MCP <-->|HTTP/REST Execute| Neo4j
+                                
+                                Langfuse[(Langfuse Tracing)]:::user
+                                MainAgent -.->|OpenTelemetry Hooks| Langfuse
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Outfit'
+        });
+
+        // Tab Switching Logic
+        function openTab(tabId) {
+            // Remove active class from all buttons and contents
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to clicked button and target content
+            const btn = document.querySelector(`button[onclick="openTab('${tabId}')"]`);
+            if(btn) btn.classList.add('active');
+            const target = document.getElementById(tabId);
+            if(target) target.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,203 +1,120 @@
-## SafeCity Sentinel: Enterprise Hybrid-Cloud MLOps Platform
+# Chicago Crime Safe City Platform
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Language](https://img.shields.io/badge/language-Python%20%7C%20TypeScript-blue) ![License](https://img.shields.io/badge/license-MIT-blue)
 
-SafeCity Sentinel is a production-grade data and MLOps platform that ingests, processes, and forecasts urban crime patterns using the Chicago Open Data API.
+**[🌐 View Live Project: chicagocrimeproject.raghuveervenkatesh.us](https://chicagocrimeproject.raghuveervenkatesh.us/)**
 
-This project demonstrates a **hybrid-cloud architecture**, balancing the high-compute power of an on‑premise bare‑metal cluster with the global scalability and managed services of **Google Cloud Platform (GCP)**.
+*An end-to-end ML, data infrastructure, and full-stack platform transforming 20 years of raw Chicago crime datasets into real-time predictive geographic risk models.*
 
----
+## Table of Contents 📑
+- [About the Project](#about-the-project-)
+- [Screenshots / Demo](#screenshots--demo-)
+- [Technologies Used](#technologies-used-%EF%B8%8F--)
+- [Setup / Installation](#setup--installation-)
+- [Approach](#approach-)
+- [Example Usage / Output](#example-usage--output)
+- [Project Structure](#project-structure-)
+- [Status](#status-)
+- [Limitations](#limitations-%EF%B8%8F)
+- [Improvements / Roadmap](#improvements--roadmap-)
+- [Credits](#credits-)
+- [Author](#author)
 
-## 1. System Architecture
+## About the Project 📚
+**What it does:** The Chicago Crime Safe City Platform is a comprehensive data and artificial intelligence ecosystem. It encompasses four major pillars: an optimized BigQuery data warehouse, a LightGBM predictive pipeline scoring geographic area risks, a Neo4j + LangGraph RAG Agent for deep semantic crime querying, and a high-performance React/FastAPI web dashboard for interactive visualization.
 
-### 1.1 The Core (On‑Premise Server)
+**Why it was built:** Traditional BI dashboards and raw relational models fail to cleanly present overlapping spatio-temporal datasets comprising over 20 years of complex incident data (gigabytes in size). This systemic platform resolves heavy analytical bottlenecks by decoupling ingestion into a Medallion Architecture, providing millisecond-latency API inferences.
 
-- **Orchestration**: `Apache Airflow`
-  - Manages complex DAGs
-  - Handles API rate limits and incremental daily loads
-- **Processing**: `Apache Spark (PySpark)`
-  - Heavy‑duty transformations on 7M+ records
-  - Feature engineering and batch processing
-- **Storage**: `MinIO`
-  - S3‑compatible object store
-  - Hosts **Bronze (raw)** and **Silver (clean)** data layers
-- **ML Lifecycle**: `MLflow`
-  - Experiment tracking and hyperparameter tuning
-  - Central **Model Registry** for promotion and rollback
+**Who it is for:** MLOps engineers, data scientists, public policy researchers, and analysts evaluating robust, full-scale end-to-end data architectures.
 
-### 1.2 The Edge (GCP + Cloudflare)
+## Screenshots / Demo 📷
+*![Platform Dashboard Visualization](https://via.placeholder.com/800x400?text=Chicago+Safe+City+Dashboard+Overview)*
 
-- **Serving**: `GCP Cloud Run`
-  - Containerized FastAPI inference service
-  - Scales to zero to minimize costs
-- **Data Warehouse**: `GCP BigQuery`
-  - Stores **Gold (analytics/features)** data
-  - Supports sub‑second dashboarding and BI
-- **Security & Connectivity**: `Cloudflare Tunnels`
-  - Secure, outbound‑only connection from local server
-  - No need for public ports or VPNs
+*![Architecture System Flow](https://via.placeholder.com/800x400?text=Data+Engineering+and+ML+Pipeline+Architecture)*
 
----
+## Technologies Used ☕️ 🐍 ⚛️
+This is a comprehensive, multi-module ecosystem leveraging best-in-class components:
+- **Data Engineering & Warehousing**: Google BigQuery, Apache Airflow, Apache Spark (PySpark), Apache Iceberg
+- **Machine Learning**: LightGBM, MLflow, Great Expectations, Pandas, Scikit-learn
+- **AI & Graph RAG**: Neo4j, LangGraph, LangChain, OpenAI API
+- **Web App Full-Stack**: React, TypeScript, Tailwind CSS, Vite, FastAPI, PostgreSQL
 
-## 2. Tech Stack
-
-### 2.1 Infrastructure
-
-- **Docker / Docker Compose**: Containerization and environment parity
-
-### 2.2 Data & Orchestration
-
-- **Airflow + Socrata API**: Robust scheduling, retry logic, and backfilling
-- **Apache Spark**: Distributed data processing and feature vectorization
-- **MinIO**: Object storage for medallion layers
-
-### 2.3 MLOps & Serving
-
-- **MLflow**: Model tracking, versioning, and registry
-- **GCP Cloud Run**: Serverless API for real‑time risk scoring
-- **Cloudflare / IAM**: Zero‑trust networking and least‑privilege access control
-
-### 2.4 Data Quality
-
-- **Great Expectations**: Automated data profiling, validation, and schema checks
-
----
-
-## 3. Data Pipeline (Medallion Architecture)
-
-### 3.1 Bronze: Raw Ingestion
-
-- Daily incremental data fetched from the **Chicago Data Portal**
-- Stored as **immutable Parquet** files in MinIO
-- Preserves full raw history for auditability and replay
-
-### 3.2 Silver: Cleaned & Standardized
-
-- Spark jobs perform:
-  - Geospatial normalization into standardized neighborhood blocks
-  - Handling of missing values (e.g., iterative imputers)
-  - Enforced schemas via Great Expectations
-
-### 3.3 Gold: Analytics & Features
-
-- Aggregated metrics, e.g.:
-  - Crime density
-  - Temporal risk trends
-- Feature sets prepared for modeling with:
-  - Temporal features (hour, day of week, seasonality)
-  - Historical lag features
-- Published to **BigQuery** for dashboards and downstream consumers
-
----
-
-## 4. Predictive Modeling & MLOps
-
-- **Model family**: Random Forest Regressor (with XGBoost baselines)
-- **Target**: Crime **risk score** in \[0.0, 1.0\] for every 200m x 200m grid cell in Chicago
-
-### 4.1 Experimentation
-
-- 20+ tracked experiments in MLflow
-- Systematic comparison of:
-  - Random Forest vs. XGBoost
-  - Different feature sets and hyperparameters
-
-### 4.2 Validation
-
-- Time‑series cross‑validation to prevent leakage
-- Strict train/validation splits respecting temporal order
-
-### 4.3 Deployment Strategy
-
-- **Champion / Challenger** workflow:
-  - New models are registered as **Challengers**
-  - Automatically compared against the **Champion** model
-  - Promotion to production only on improved performance and stability
-
----
-
-## 5. Monitoring, Observability, and Security
-
-### 5.1 Observability (99.9% Strategy)
-
-- **Health checks**:
-  - Airflow SLAs and callbacks notify on pipeline delays or failures
-- **Drift detection**:
-  - Monitor input distributions (e.g., ratio of “Theft” to “Battery”)
-  - Trigger alerts when drift exceeds configured thresholds
-- **Centralized logging**:
-  - Cloud Run and API logs shipped to **GCP Cloud Logging**
-
-### 5.2 Security & Cost Optimization
-
-- **Zero‑trust access**:
-  - Cloudflare Access in front of Airflow and MLflow UIs
-  - MFA and identity‑aware access control
-- **Cost efficiency**:
-  - Spark and MinIO run on‑prem to avoid large cloud compute/egress costs
-  - Cloud usage limited to lightweight serving and warehousing
-- **Secret management**:
-  - All credentials (API keys, GCP service accounts, etc.) provided via environment variables
-  - No secrets committed to version control
-
----
-
-## 6. Deployment and Usage
-
-### 6.1 Local Setup
+## Setup / Installation 💻
+As an enterprise-scale distributed system, each module is containerized and requires distinct credentials.
 
 ```bash
-git clone https://github.com/yourusername/safecity-sentinel.git
-cd safecity-sentinel
-docker-compose up -d
+git clone https://github.com/raghuveer9303/Chicago-Crime-Safe-City-Project.git
+cd Chicago-Crime-Safe-City-Project
+
+# Spin up web dashboard and backend database
+cd chicago-crime-web-app
+docker-compose up --build -d
+
+# Spin up local orchestrators for data models
+cd ../chicago-ml
+export AIRFLOW_HOME=$(pwd)
+airflow standalone
+```
+*Note: Refer to specific ecosystem components for detailed `.env` API setups.*
+
+## Approach 🚶
+This platform tackles systemic urban intelligence via decoupled, scalable modules using a **Medallion Data Architecture (Bronze/Silver/Gold)**:
+
+1. **[Analytical Data Warehouse (chicago-bq)](./chicago-bq/README.md)**: Transforms raw API telemetry into a Kimball Star Schema in BigQuery.
+2. **[Machine Learning Pipeline (chicago-ml)](./chicago-ml/README.md)**: Constructs engineered feature stores mapping 20 years of history, powering MLflow-tracked LightGBM spatial risk engines.
+3. **[Graph RAG Copilot (chicago-rag)](./chicago-rag/README.md)**: An intelligent LangGraph multi-agent converting intent directly into Neo4j Cypher algorithms to trace underlying offender/incident network structures.
+4. **[Interactive Dashboard (chicago-crime-web-app)](./chicago-crime-web-app/README.md)**: A glassmorphic React visualizer rendering geometric tile arrays connected to a low-latency FastAPI aggregated backend.
+
+## Example Usage / Output
+**Holistic Intelligence Workflow Analysis**
+
+*1. Querying incident predictive risk via Backend APIs:*
+```json
+// input → GET /api/v1/risk/tract/17031010100
+// output
+{
+  "tract_id": "17031010100",
+  "daily_risk_score": 0.84,
+  "confidence_interval": [0.79, 0.89],
+  "dominant_crime_types": ["THEFT", "BATTERY"]
+}
 ```
 
-This will start the core services (Airflow, Spark, MinIO, MLflow, etc.) in Docker.
+*2. Graph RAG semantic exploration of relational incident logic:*
+```text
+input → "How many coordinated robberies happened in the Loop community?"
 
-### 6.2 GCP Provisioning
-
-1. Ensure your GCP project, billing, and IAM roles are configured.
-2. Navigate to the `infra` directory.
-3. Run Terraform to provision:
-   - Cloud Run service
-   - BigQuery datasets and tables
-
-Example:
-
-```bash
-cd infra
-terraform init
-terraform apply
+output → System executes MATCH (i:Incident {type: 'ROBBERY'})-[:OCCURRED_AT]->(l:Location {community: 'LOOP'})
+"Based on the graph, there are 14 coordinated robbery incidents in the Loop involving multiple suspects."
 ```
 
-### 6.3 Pipeline Activation
+## Project Structure 📁
+```text
+.
+├── chicago-bq/             # BigQuery dimensional modeling & ETL Airflow pipelines
+├── chicago-crime-web-app/  # React/TS map visualizer & FastAPI inference API
+├── chicago-ml/             # Medallion lake features, MLflow tracking, LightGBM models
+├── chicago-rag/            # Neo4j localized topology schemas & LangGraph agents
+└── README.md               # You are here!
+```
 
-1. Access the Airflow UI (e.g., `https://airflow.yourdomain.com` via Cloudflare).
-2. Locate and trigger the `chicago_crime_master_dag`.
-3. Confirm that Bronze, Silver, and Gold layers are being populated, and that models are registered in MLflow.
+## Status 📶
+**Active**. Core data models, analytical pipelines, schema injections, and visualization layouts are extremely stable. ML modeling layers are actively expanding support for sequential modeling via LSTM structures.
 
----
+## Limitations ⚠️
+- **Memory Caps & Storage Constraints**: Syncing highly connected multi-million node graphs into local Neo4j instances can trigger memory starvation and necessitates clustered cloud deployments.
+- **Latency Overlays**: Heavy React geographic tract rendering with dense incident nodes creates tiling latency independent of API speed (which operates under sub-200ms).
+- **Macro-level Processing Lags**: Base historical features undergo batch Airflow evaluation rather than live stream updates, resulting in short (24-hour) lag windows compared to true live events.
+- **LLM Context Hallucinations**: Extremely complex relational prompt vectors may corrupt the strict Graph Agent Cypher generators.
 
-## 7. Impact & Results
+## Improvements / Roadmap 🚀
+- Migrate Airflow data pipeline tasks dynamically via `KubernetesPodOperator` for distributed worker clusters.
+- Establish robust multi-modal search combining Neo4j graph results with direct Faiss vector similarity indexing for the RAG Copilot.
+- Deploy Vector rendering tools (Mapbox GL JS) into the dashboard to alleviate dynamic zooming lag seen from traditional point clustering.
+- Automate complete parameter optimization (Hyperopt) integrations directly into the `chicago-ml` CI/CD track.
 
-- **Latency**: Average online inference latency \< 150 ms via Cloud Run
-- **Scalability**:
-  - Architecture designed to onboard new cities (e.g., NYC, LA)
-  - Adding a city largely involves adding a new Airflow provider and configuration
-- **Accuracy**:
-  - Achieved approximately **0.84 R²** in predicting high‑incident “hot zones” 24 hours in advance
+## Credits 📝
+- Inspired by enterprise data architectures and data platform schemas established by Databricks and LangChain methodologies.
+- The fundamental data schema stems from the open records supplied by the [Chicago Data Portal](https://data.cityofchicago.org/).
 
----
-
-## 8. Project Status and Contact
-
-This repository is part of a Staff Data Scientist–level portfolio, demonstrating:
-
-- End‑to‑end data engineering and MLOps
-- Hybrid‑cloud architecture design
-- Production‑grade monitoring, security, and cost management
-
-**Author**: \[Your Name\]  
-**Role**: Staff Data Scientist (Portfolio Project)
-
-🛡️ SafeCity Sentinel: Enterprise Hybrid-Cloud MLOps PlatformSafeCity Sentinel is a production-grade data platform that ingests, processes, and forecasts urban crime patterns using the Chicago Open Data API. This project demonstrates a Hybrid-Cloud Architecture, balancing the high-compute power of an on-premise "Bare Metal" cluster with the global scalability and managed services of Google Cloud Platform (GCP).🏗️ System ArchitectureThe platform implements a Medallion (Lakehouse) Architecture to ensure data integrity and lineage across the lifecycle.1. The Core (On-Premise Server)Orchestration: Apache Airflow manages complex DAGs, handling API rate limits and incremental daily loads.Processing: Apache Spark (PySpark) performs heavy-duty transformations and feature engineering on 7M+ records.Storage: MinIO serves as the S3-compatible Object Store for the Bronze (Raw) and Silver (Clean) layers.ML Lifecycle: MLflow handles experiment tracking, hyperparameter tuning, and the Model Registry.2. The Edge (GCP + Cloudflare)Serving: GCP Cloud Run hosts a containerized FastAPI inference service, scaling to zero to minimize costs.Data Warehouse: GCP BigQuery (Free Tier) stores the "Gold" layer for sub-second dashboarding and public consumption.Security: Cloudflare Tunnels create a secure, outbound-only connection from the local server to the public internet, bypassing the need for open ports or VPNs.🛠️ Tech Stack & ToolingLayerTechnologyEnterprise PurposeInfrastuctureDocker / Docker ComposeContainerization and environment parity.Data IngestionAirflow + Socrata APIRobust scheduling with retry logic and backfilling.Big Data EngineApache SparkDistributed data processing and feature vectorization.Model TrackingMLflowModel versioning and performance comparison.Serverless APIGCP Cloud RunHigh-availability endpoint for real-time risk scoring.SecurityCloudflare / IAMZero Trust networking and Least Privilege access control.Data QualityGreat ExpectationsAutomated data profiling and schema validation.📊 Data Pipeline (Medallion Logic)🥉 Bronze: Raw IngestionDaily incremental data is fetched from the Chicago Data Portal. Data is stored as immutable Parquet files in MinIO to preserve the original state for auditability.🥈 Silver: Cleaned & StandardizedSpark jobs perform geospatial normalization, converting raw coordinates into standardized neighborhood blocks. We handle missing values using iterative imputer techniques and enforce strict schemas using Great Expectations.🥇 Gold: Analytics & FeaturesAggregated metrics (Crime Density, Risk Trends) are pushed to BigQuery. Feature sets are prepared for training, focusing on temporal features (hour, day of week, seasonality) and historical lag variables.🤖 MLOps & IntelligenceThe predictive engine uses a Random Forest Regressor (tracked via MLflow) to generate a "Risk Score" (0.0 - 1.0) for every 200m x 200m grid cell in Chicago.Experimentation: Over 20+ runs tracked in MLflow comparing XGBoost vs. Random Forest.Validation: Implementation of a Time-Series Split to prevent data leakage.Deployment: The "Challenger" model is automatically compared against the "Champion" in the Registry before being promoted to production.🛡️ Enterprise Features: Monitoring & Security1. Observability (The 99.9% Strategy)To ensure system reliability, the platform implements:Health Checks: Airflow SLA callbacks notify on pipeline delays.Drift Detection: Monitoring input data distributions; if the "Theft" to "Battery" ratio shifts significantly, an alert is triggered.Logging: Centralized logs via GCP Cloud Logging for the API layer.2. Security & Cost OptimizationZero Trust: Cloudflare Access protects the Airflow and MLflow UIs with Multi-Factor Authentication (MFA).Cost-Efficiency: By running Spark and MinIO on-prem, we process TBs of data for $0 in cloud egress/compute fees, only paying for the lightweight GCP API.Secret Management: All credentials (API Keys, GCP Service Accounts) are managed via environment variables and never committed to version control.🚀 Deployment InstructionsLocal Setup:Bashgit clone https://github.com/yourusername/safecity-sentinel
-docker-compose up -d
-GCP Provisioning:Run the Terraform script in /infra to spin up the Cloud Run service and BigQuery datasets.Pipeline Activation:Access the Airflow UI at airflow.yourdomain.com and trigger the chicago_crime_master_dag.📈 Impact & ResultsLatency: Average inference time of <150ms via Cloud Run.Scalability: The pipeline is architected to ingest data from additional cities (e.g., NYC, LA) by simply adding new Airflow providers.Accuracy: Achieved a 0.84 R² in predicting high-incident "Hot Zones" 24 hours in advance.Created by [Your Name] – Staff Data Scientist Portfolio
+## Author
+Raghuveer Venkatesh • [LinkedIn](https://linkedin.com) • [GitHub](https://github.com/raghuveer9303)

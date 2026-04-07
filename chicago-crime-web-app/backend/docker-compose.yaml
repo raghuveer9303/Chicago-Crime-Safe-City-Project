@@ -1,0 +1,19 @@
+# Example: attach to the same Docker network as Postgres (e.g. data-infra-network) where
+# postgres_db exposes chicago_crime_analytics. Adjust CHICAGO_ANALYTICS_* to match Airflow env.
+services:
+  backend-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      CHICAGO_ANALYTICS_DB_HOST: ${CHICAGO_ANALYTICS_DB_HOST:-postgres_db}
+      CHICAGO_ANALYTICS_DB_PORT: ${CHICAGO_ANALYTICS_DB_PORT:-5432}
+      CHICAGO_ANALYTICS_DB_NAME: ${CHICAGO_ANALYTICS_DB_NAME:-carvana_db}
+      CHICAGO_ANALYTICS_DB_USER: ${CHICAGO_ANALYTICS_DB_USER:-admin}
+      CHICAGO_ANALYTICS_DB_PASSWORD: ${CHICAGO_ANALYTICS_DB_PASSWORD:-}
+      GEOJSON_PATH: data/geo/community_areas.geojson
+      CORS_ORIGINS: "*"
+    # networks:
+    #   - data-infra-network

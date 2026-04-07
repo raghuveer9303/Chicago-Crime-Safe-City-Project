@@ -1,0 +1,36 @@
+# RAG API (FastAPI). Requires Neo4j, neo4j-mcp, and Langfuse on data-infra-network.
+#
+# Host port: RAG API 9508 -> container 8080 (override with RAG_API_HOST_PORT).
+#
+# Prerequisites:
+#   docker network create data-infra-network
+#   Start Neo4j (e.g. docker compose -f ../Docker/neo4j-docker.yaml up -d)
+#   docker compose -f ../Docker/mcp-docker.yaml up -d
+#   docker compose -f ../Docker/langfuse-docker.yaml up -d
+#   Vault Agent so ../Docker/vault/rendered/rag.env exists, or copy from templates for local dev.
+#
+# Start: from this directory: docker compose up -d
+
+version: "3.8"
+
+services:
+  rag-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag-api
+    restart: unless-stopped
+    env_file:
+      - ../Docker/vault/rendered/rag.env
+    environment:
+      NEO4J_MCP_URL: ${NEO4J_MCP_URL:-http://neo4j-mcp:8000/mcp/}
+      GROQ_MODEL_SMALL: ${GROQ_MODEL_SMALL:-openai/gpt-oss-20b}
+      GROQ_MODEL_LARGE: ${GROQ_MODEL_LARGE:-openai/gpt-oss-120b}
+    ports:
+      - "${RAG_API_HOST_PORT:-9508}:8080"
+    networks:
+      - data-infra-network
+
+networks:
+  data-infra-network:
+    external: true

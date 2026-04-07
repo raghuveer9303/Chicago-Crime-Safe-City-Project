@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "name": "chicago_community_areas_placeholder",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "area_id": 1, "name": "Rogers Park" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-87.695, 41.99], [-87.65, 41.99], [-87.65, 42.02], [-87.695, 42.02], [-87.695, 41.99]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "area_id": 2, "name": "West Ridge" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-87.71, 41.99], [-87.66, 41.99], [-87.66, 42.02], [-87.71, 42.02], [-87.71, 41.99]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "area_id": 3, "name": "Uptown" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-87.68, 41.96], [-87.63, 41.96], [-87.63, 41.99], [-87.68, 41.99], [-87.68, 41.96]]]
+      }
+    }
+  ]
+}
