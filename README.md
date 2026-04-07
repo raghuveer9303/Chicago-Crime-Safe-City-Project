@@ -27,9 +27,12 @@
 **Who it is for:** MLOps engineers, data scientists, public policy researchers, and analysts evaluating robust, full-scale end-to-end data architectures.
 
 ## Screenshots / Demo 📷
-*![Platform Dashboard Visualization](https://via.placeholder.com/800x400?text=Chicago+Safe+City+Dashboard+Overview)*
 
-*![Architecture System Flow](https://via.placeholder.com/800x400?text=Data+Engineering+and+ML+Pipeline+Architecture)*
+<img width="1233" height="716" alt="image" src="https://github.com/user-attachments/assets/39cf80ec-b411-4aef-a527-e1e30f4a509e" />
+
+<img width="1709" height="939" alt="image" src="https://github.com/user-attachments/assets/7a8cc687-e89c-47d6-b2b5-5df8f1f5b280" />
+
+<img width="1720" height="943" alt="image" src="https://github.com/user-attachments/assets/721d2fb0-e167-46aa-aed8-cdbb5f8d7ffb" />
 
 ## Technologies Used ☕️ 🐍 ⚛️
 This is a comprehensive, multi-module ecosystem leveraging best-in-class components:
